@@ -1,0 +1,37 @@
+name: Fetch Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/queries.json'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests pillow
+
+      - name: Fetch images
+        run: python tools/get_images.py
+
+      - name: Commit and push images
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add assets/images docs/SOURCES.md tools/credits.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Fetch real product images"
+            git push
+          fi
